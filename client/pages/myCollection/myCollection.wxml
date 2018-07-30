@@ -17,7 +17,7 @@
           <text class='up'>{{item.faceCard.createDate}}</text>
           <view class='down'>
             <image src='https://www.facecardpro.com/public/wximg/location.png'></image>
-            <text>{{item.faceCard.city}},{{item.faceCard.district}}</text>
+            <text wx:if="{{item.city}}">{{item.faceCard.city}},{{item.faceCard.district}}</text>
           </view>
         </view>
         <image class='right-arrow' src='https://www.facecardpro.com/public/wximg/arrow.png'></image>

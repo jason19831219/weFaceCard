@@ -126,7 +126,8 @@ Page({
               })
             },
             fail: function (err) {
-              util.showBusy('获取地址错误')
+              that.getRecommendPic();
+              // util.showBusy('获取地址错误')
             }
           })
         },
