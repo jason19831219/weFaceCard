@@ -18,7 +18,9 @@ Page({
     refImgList: [],
     recommendPic: [],
     tempPhotoPath: '',
+    shareQrFlag: false,
     faceCardId: '',
+    qrCanvas: {},
     index: 0,
     faceCard: {},
     faceSharpItems: [
@@ -44,11 +46,40 @@ Page({
       imgUrl: options.imgUrl
       // imgUrl: '/public/upload/wep/photos/img20180705163127.png'
     })
+    var temp = {};
+    var width = 0;
+    var height = 0;
+    var query = wx.createSelectorQuery();
+    query.select('#main').boundingClientRect()
+    query.exec(function (res) {
+      temp['width'] = res[0].width * 0.9
+      temp['height'] = res[0].height * 0.9
+    })
+    var picWidth = 0;
+    var picHeight = 0;
+    var query = wx.createSelectorQuery();
+    query.select('.pic-holder>.image-holder').boundingClientRect()
+    query.exec(function (res) {
+      temp['picWidth']  = res[0].width,
+      temp['picHeight'] = res[0].height
+      that.setData({
+        qrCanvas: temp
+      })
+      console.log('qrCanvas' + JSON.stringify(that.data.qrCanvas))
+    })
 
+   
+
+    
+    // options.faceCardId = 'Hyda9H1rm'
     if(options.faceCardId){
       this.setData({
         faceCardId: options.faceCardId,
         retryFlag: true
+      })
+
+      wx.setNavigationBarTitle({
+        title: '再次比对'
       })
 
       api.get({
@@ -69,6 +100,9 @@ Page({
       });
 
     }else {
+      wx.setNavigationBarTitle({
+        title: '建立脸卡'
+      })
       api.get({
         url: 'https://www.facecardpro.com/wep/startAipFace',
         method: 'POST',
@@ -170,18 +204,21 @@ Page({
         gender: that.data.faceCard.gender,
         faceShape: that.data.faceCard.face_shape,
         yaw: that.data.faceCard.yaw + 3,
-        yawMinus: that.data.faceCard.yaw - 3
+        yawMinus: that.data.faceCard.yaw - 3,
+        frontFlag: true
       },
       success(result) {
         util.showSuccess('测算结束')
         result.data.list.forEach(function (res) {
-          list.push({
-            src: res.src,
-            name: res.name,
-            id: res.id
-          })
-          if (list.length < 4) {
-            resultList.push(res.src)
+          if(res){
+            list.push({
+              src: res.src,
+              name: res.name,
+              id: res.id
+            })
+            if (list.length < 4) {
+              resultList.push(res.src)
+            }
           }
         })
         var i = 0;
@@ -279,7 +316,7 @@ Page({
       method: 'POST',
       data: that.data.faceCard,
       success(result) {
-        util.showSuccess('更新成功')
+        // util.showSuccess('更新成功')
       },
       fail(err) {
         util.showError('保存失败')
@@ -349,7 +386,7 @@ Page({
       console.log('请先保存')
     } else {
       return {
-        title: '脸卡',
+        title: '快来看看您长得像谁？',
         path: '/pages/faceCardCreateShare/faceCardCreateShare?faceCardId=' + faceCardId,
         success: (res) => {
           console.log("转发成功", res);
@@ -378,5 +415,188 @@ Page({
 
   share: function () {
     this.updateFaceCard()
-  }
+  },
+
+  // onShow: function () {
+  //   var that = this;
+  //   var query = wx.createSelectorQuery();
+  //   query.select('#main').boundingClientRect()
+  //   query.exec(function (res) {
+  //     var str1 = 'qrCanvas.width';
+  //     var str2 = 'qrCanvas.height'
+  //     that.setData({
+  //       [str1]: res[0].width,
+  //       [str2]: res[0].height
+  //     });
+  //   })
+  //   var query = wx.createSelectorQuery();
+  //   query.select('.pic-holder>.image-holder').boundingClientRect()
+  //   query.exec(function (res) {
+  //     var str1 = 'qrCanvas.picWidth';
+  //     var str2 = 'qrCanvas.picHeight'
+  //     that.setData({
+  //       [str1]: res[0].width,
+  //       [str2]: res[0].height
+  //     });
+  //   })
+
+  //   console.log('this.data.qrCanvas.heightonShow'+this.data.qrCanvas.height)
+
+  //   console.log('this.data.qrCanvas.height' + this.data.qrCanvas.picHeight)
+  // },
+
+  // onReady: function () {
+  //   var that = this;
+  //   var query = wx.createSelectorQuery();
+  //   query.select('#main').boundingClientRect()
+  //   query.exec(function (res) {
+  //     var str1 = 'qrCanvas.width';
+  //     var str2 = 'qrCanvas.height'
+  //     that.setData({
+  //       [str1]: res[0].width,
+  //       [str2]: res[0].height
+  //     });
+  //   })
+  //   var query = wx.createSelectorQuery();
+  //   query.select('.pic-holder>.image-holder').boundingClientRect()
+  //   query.exec(function (res) {
+  //     var str1 = 'qrCanvas.picWidth';
+  //     var str2 = 'qrCanvas.picHeight'
+  //     that.setData({
+  //       [str1]: res[0].width,
+  //       [str2]: res[0].height
+  //     });
+  //   })
+
+  //   console.log('this.data.qrCanvas.heightonReady' + this.data.qrCanvas.height)
+
+  //   console.log('this.data.qrCanvas.height' + this.data.qrCanvas.picHeight)
+  // },
+
+  getImageinfo: function (imagePath){
+    return new Promise((resolve,reject)=> {
+      console.log(imagePath)
+      wx.getImageInfo({
+        src: imagePath,//服务器返回的带参数的小程序码地址
+        success: function (res) {
+          resolve(res)
+        },
+        fail: function (res) {
+          reject(res)
+        }
+      })
+    })
+  },
+
+
+  async drawQrcode () {
+    var that = this;
+    this.setData({
+      shareQrFlag: true
+    })
+    wx.showLoading({
+      title: '正在生成图片...',
+      mask: true,
+    });
+
+    var leftImage = '';
+    var leftImageSx = 0;
+    var leftImageSy = 0;
+    var leftImageSw = 0;
+    var leftImageSh = 0;
+    await this.getImageinfo('https://www.facecardpro.com' + that.data.faceCard.facePhoto).then(function (res) {
+      leftImage = res.path
+      if(res.height/res.width>1.5){
+        console.log('height')
+        leftImageSw = res.width;
+        leftImageSx = 0;
+        leftImageSh = res.width *1.5;
+        leftImageSy = (res.height - leftImageSh) / 2
+      }else{
+        console.log('width')
+        leftImageSh = res.height;
+        leftImageSy = 0;
+        leftImageSw = (res.height/3)*2;
+        leftImageSx = (res.width-leftImageSw)/2
+      }
+    });
+
+
+    var rightImage = '';
+    await this.getImageinfo('https://www.facecardpro.com' + that.data.refImgList[this.data.index].src).then(function (res) {
+      rightImage = res.path
+    });
+
+    var qrImage = '';
+    await this.getImageinfo('https://www.facecardpro.com/public/wximg/qrcode.jpg').then(function (res) {
+      qrImage = res.path
+    });
+
+
+    var height = this.data.qrCanvas.height;
+    var width = this.data.qrCanvas.width;
+    var picWidth = this.data.qrCanvas.picWidth;
+    var picHeight = ((width / 2) / picWidth) * this.data.qrCanvas.picHeight ;
+
+    const rightImageName = this.data.refImgList[this.data.index].name
+
+    const canvasCtx = wx.createCanvasContext('myCanvas');
+    //绘制背景
+    canvasCtx.setFillStyle('white');
+    canvasCtx.fillRect(0, 0, width, height);
+    canvasCtx.drawImage(leftImage, leftImageSx, leftImageSy, leftImageSw, leftImageSh, 0, 0, width / 2, picHeight);
+    canvasCtx.drawImage(rightImage, width / 2, 0, width / 2, picHeight);
+    canvasCtx.setFontSize(16);
+    canvasCtx.setFillStyle('#000000');
+    canvasCtx.setTextAlign('center');
+    canvasCtx.fillText('经过阿发确认，与您最相似的明星', width / 2, picHeight+40);
+
+    canvasCtx.setFontSize(20);
+    canvasCtx.setFillStyle('#000000');
+    canvasCtx.setTextAlign('center');
+    canvasCtx.fillText('竟然是 ' + rightImageName + '!!!',width / 2, picHeight + 80);
+    canvasCtx.drawImage(qrImage, width / 4, picHeight + 100, width / 2, width / 2);
+    canvasCtx.draw();
+    //绘制之后加一个延时去生成图片，如果直接生成可能没有绘制完成，导出图片会有问题。
+    setTimeout(function () {
+      wx.canvasToTempFilePath({
+        x: 0,
+        y: 0,
+        width: width,
+        height: height,
+        destWidth: width,
+        destHeight: height,
+        canvasId: 'myCanvas',
+        success: function (res) {
+          // that.setData({
+          //   shareImage: res.tempFilePath,
+          //   showSharePic: true
+          // })
+          wx.hideLoading();
+          wx.saveImageToPhotosAlbum({
+            filePath: res.tempFilePath,
+            success(res) {
+              wx.showModal({
+                content: '图片已保存到相册,可分享到朋友圈！',
+                showCancel: false,
+                confirmText: '好的',
+                success: function (res) {
+                  that.setData({
+                    shareQrFlag: false
+                  })
+                }
+              })
+            
+              // util.showSuccess('图片已保存到相册,可分享到朋友圈！')
+            },
+          })
+          
+        },
+        fail: function (res) {
+          console.log(res)
+          wx.hideLoading();
+        }
+      })
+    }, 2000);
+  },
 })

@@ -1,5 +1,5 @@
 <!--index.wxml-->
-<view class="container">
+<view class="container" id='main'>
   <!-- 用户登录测试 -->
   <view class='cover' wx:if="{{!resultFlag}}" animation = "{{coverAnimation}}">
 
@@ -9,6 +9,8 @@
     <view class="pic-holder" animation="{{animationPicData}}">
       <view class='image-holder'>
         <image wx:if="{{tempPhotoPath}}" src="{{tempPhotoPath}}" mode='aspectFill' data-list="{{[(faceCard.facePhoto)]}}" data-src="{{'https://www.facecardpro.com' + faceCard.facePhoto}}"  bindtap="imgPreview"></image>
+
+        <!-- <image wx:if="{{'https://www.facecardpro.com' + faceCard.facePhoto}}" src="{{'https://www.facecardpro.com' + faceCard.facePhoto}}" mode='aspectFill' data-list="{{[(faceCard.facePhoto)]}}" data-src="{{'https://www.facecardpro.com' + faceCard.facePhoto}}"  bindtap="imgPreview"></image> -->
       </view>
 
       <!-- <view class='image-holder'>
@@ -24,10 +26,10 @@
   </view>
 
   <view class='validHolder'>
-    <image class='validIcon' src='https://www.facecardpro.com/public/wximg/avatar.png'></image>
+    <image class='validIcon' src='https://www.facecardpro.com/public/wximg/avatar1.png'></image>
     <view class='validText'>
       <view>
-        经过阿发确认，与您最相似的明星竟然是
+        经过阿发确认，与您最相似的明星<text>\n竟然是 </text>
         <text wx:if="{{refImgList[index].name}}">{{refImgList[index].name}}!!!</text>
       </view>
     </view>
@@ -65,7 +67,7 @@
     </view>
     <view class='item'>
       <view class='main'>
-        <text class='ft-1'>这些发型看来都很适合你</text>
+        <text class='ft-1'>这些发型看来都很适合您</text>
         <view class='detail'>
           <view class='image-holder' wx:for="{{faceCard.recommendPic}}" wx:item="{{item}}" wx:key="{{index}}">
             <image mode='aspectFill' bindtap="imgPreview" src="{{'https://www.facecardpro.com' + item}}" data-list="{{faceCard.recommendPic}}" data-src="{{'https://www.facecardpro.com' + item}}"></image>
@@ -82,15 +84,19 @@
     </view> -->
   </view>
 
-  <view class='bottom-btn-holder'>
+  <!-- <view class='bottom-btn-holder'>
     <button class='whole-btn blue' open-type='share'>分享出去吧</button>
-  </view>
+  </view> -->
 
   <view class='bottom-btn-holder'>
+    
     <button wx:if="{{retryFlag}}" class='half-btn gray' open-type='share' bindtap='share'>分享</button>
     <button wx:if="{{retryFlag}}" class='half-btn blue' bindtap='retry'>换一张</button>
+    <!-- <button wx:if="{{retryFlag}}" class='btn little blue' bindtap='drawQrcode'>朋友圈</button> -->
     <button wx:if="{{!retryFlag}}" class='whole-btn blue' open-type='share'>分享出去吧</button>
   </view>
-
+<view class="canvas-holder" hidden="{{!shareQrFlag}}" id='canvas-holder'>
+    <canvas class='canvas' canvas-id="myCanvas" id='myCanvas' />
+  </view>
 
 </view>

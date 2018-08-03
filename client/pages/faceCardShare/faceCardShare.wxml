@@ -8,12 +8,14 @@
       <button wx:if="{{editFlag}}" data-target='facePhoto' class='upload-btn' bindtap='uploadImg'></button>
     </view>
     <view class='side photoHolder'>
+      <image class='side-icon' wx:if="{{!editFlag}}" src='https://www.facecardpro.com/public/wximg/otherside.png'></image>
       <text wx:if="{{!faceCard.sidePhoto}}" class='uploadBtn'>添加侧面</text>
       <image wx:if="{{faceCard.sidePhoto}}" class="photo userPhoto" src="{{'https://www.facecardpro.com' + faceCard.sidePhoto}}" mode='aspectFill'></image>
       <button wx:if="{{editFlag}}" data-target='sidePhoto' class='upload-btn' bindtap='uploadImg'></button>
     </view>
     <view class='back photoHolder'>
-      <text wx:if="{{!faceCard.backPhoto}}" class='uploadBtn'>添加侧面</text>
+      <image class='side-icon' wx:if="{{!editFlag}}" src='https://www.facecardpro.com/public/wximg/backside.png'></image>
+      <text wx:if="{{!faceCard.backPhoto}}" class='uploadBtn'>添加背面</text>
       <image wx:if="{{faceCard.backPhoto}}" class="photo userPhoto" src="{{'https://www.facecardpro.com' + faceCard.backPhoto}}" mode='aspectFill'></image>
       <button wx:if="{{editFlag}}" data-target='backPhoto' class='upload-btn' bindtap='uploadImg'></button>
     </view>
@@ -37,7 +39,7 @@
           <image class='icon' wx:if="{{faceCard.face_shape=='round'}}" src="https://www.facecardpro.com/public/wximg/round.png"></image>
         </view>
 
-        <view class='detail' >
+        <view class='detail'>
           <view class='right-holder' style='right: 0;'>
             <text class='up'>{{faceCard.clickNum}} 看过</text>
             <view class='down'>
@@ -50,7 +52,7 @@
     </view>
     <view class='item' style='border-top: 0rpx;'>
       <view class='main'>
-        <text class='ft-1'>这些发型看来都很适合你</text>
+        <text class='ft-1'>这些发型看来都很适合您</text>
         <view class='detail'>
           <view class='image-holder' wx:for="{{faceCard.recommendPic}}" wx:item="{{item}}" wx:key="{{index}}">
             <image mode='aspectFill' bindtap="imgPreview" src="{{'https://www.facecardpro.com' + item}}" data-list="{{faceCard.recommendPic}}" data-src="{{'https://www.facecardpro.com' + item}}"></image>
@@ -106,10 +108,20 @@
 
 
   <view class='bottom-btn-holder'>
-    <button class='btn little gray' open-type="getUserInfo" bindgetuserinfo="bindGetUserInfo">收藏</button>
-    <button class='btn little gray' open-type='share'>分享</button>
-    <button wx:if='{{!recommendFlag}}' class='btn little blue' bindtap='goBack'>我也试试</button>
-    <button wx:if='{{recommendFlag}}' class='btn little blue' bindtap='getNext'>换一张</button>
+    <view wx:if="{{!navFlag}}">
+      <button wx:if="{{!collectedFlag}}" class='btn little gray' open-type="getUserInfo" bindgetuserinfo="bindGetUserInfo">收藏</button>
+      <button wx:if="{{collectedFlag}}" class='btn little gray' bindtap='deleteCollection'>取消收藏</button>
+      <button class='btn little gray' open-type='share'>分享</button>
+      <button wx:if='{{!recommendFlag}}' class='btn little blue' bindtap='goBack'>我也试试</button>
+      <button wx:if='{{recommendFlag}}' class='btn little blue' bindtap='getNext'>换一张</button>
+    </view>
+
+    <view wx:if="{{navFlag}}">
+      <button wx:if="{{!collectedFlag}}" class='half-btn gray' open-type="getUserInfo" bindgetuserinfo="bindGetUserInfo">收藏</button>
+      <button wx:if="{{collectedFlag}}" class='half-btn gray' bindtap='deleteCollection'>取消收藏</button>
+      <button class='half-btn blue' open-type='share'>分享</button>
+    </view>
+
   </view>
 
 

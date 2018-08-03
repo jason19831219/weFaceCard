@@ -11,7 +11,8 @@ Page({
     requestResult: '',
     logged: false,
     faceCardList: [],
-    pageNumber: 0
+    pageNumber: 0,
+    pageInfo:{}
   },
 
 
@@ -127,7 +128,7 @@ Page({
       query.select('.list > .item > .btn').boundingClientRect()
       query.exec(function (res) {
         that.setData({
-          delBtnWidth: res[0].width
+          delBtnWidth: res[0].width-3
         });
       })
       this.setData({
@@ -245,7 +246,8 @@ Page({
         pageNumber: that.data.pageNumber
       },
       success(result) {
-        console.log(result.data.list.length)
+        console.log(that.data.pageNumber)
+        console.log(that.data.pageInfo.totalItems)
         if (!result.data.list.length){
           that.setData({
             pageNumber: that.data.pageNumber - 1
@@ -277,7 +279,8 @@ Page({
       success(result) {
         console.log(result)
         that.setData({
-          faceCardList: result.data.list
+          faceCardList: result.data.list,
+          pageInfo: result.data.pageInfo
         });
       },
       fail(err) {
@@ -295,10 +298,10 @@ Page({
     var that = this;
     var id = e.currentTarget.dataset.id
     api.get({
-      url: 'https://www.facecardpro.com/wep/faceCard/deleteOne',
+      url: 'https://www.facecardpro.com/wep/faceCard/updateRemoveTag',
       method: 'GET',
       data: {
-        ids: id
+        faceCardId: id
       },
       success(result) {
         util.showSuccess('删除成功')
@@ -308,5 +311,8 @@ Page({
         util.showError('删除失败')
       }
     })
+  },
+  onReachBottom: function () {
+    this.getMore();
   }
 })

@@ -120,5 +120,9 @@ image{
   margin-top: 30rpx;
 }
 
+.list {
+  margin-bottom: 215rpx;
+}
+
 
 

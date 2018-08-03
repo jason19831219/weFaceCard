@@ -149,6 +149,8 @@ function loginWithCode(opts) {
         header['cookie'] = session.cookie;
         header['skey'] = session.skey;
       }
+
+      console.log(header);
       // [constants.WX_HEADER_COOKIE]: getCookie()
       // 请求服务器登录地址，获得会话信息
       wx.request({
@@ -156,6 +158,7 @@ function loginWithCode(opts) {
         header: header,
         method: opts.method,
         success(result) {
+          console.log(result);
           const data = result.data;
 
           if (!data || data.code !== 0 || !data.data || !data.data.skey) {

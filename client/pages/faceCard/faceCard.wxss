@@ -37,6 +37,17 @@
   margin-left: -30rpx;
 }
 
+.photoHolder .side-icon{
+  position: absolute;
+  width: 60rpx;
+  height: 70rpx;
+  left: 50%;
+  top: 120rpx;
+  margin-left: -30rpx;
+}
+
+
+
 .photoHolder text{
   position: absolute;
   width: 100%;
@@ -195,3 +206,4 @@
   height: 100%;
   background-color: rgba(0, 0, 0, 0);
 }
+

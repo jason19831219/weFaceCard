@@ -59,6 +59,19 @@ Page({
         that.setData({
           faceCard: result.data.faceCard
         });
+        api.get({
+          url: 'https://www.facecardpro.com/wep/view/addOne',
+          method: 'POST',
+          data: {
+            faceCardId: that.data.faceCardId
+          },
+          success(result) {
+            console.log(result);
+          },
+          fail(err) {
+            util.showError('保存失败')
+          }
+        });
       },
       fail(err) {
         util.showError('保存失败')
@@ -234,7 +247,7 @@ Page({
   onShareAppMessage: function () {
     var faceCardId = this.data.faceCardId;
     return {
-      title: '脸卡',
+      title: '快来建立属于您的脸卡',
       path: '/pages/faceCardShare/faceCardShare?faceCardId=' + faceCardId,
       success: (res) => {
         console.log("转发成功", res);

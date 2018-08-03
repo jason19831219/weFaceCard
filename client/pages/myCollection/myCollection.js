@@ -1,4 +1,3 @@
-
 var api = require('../../utils/api.js')
 var util = require('../../utils/util.js')
 Page({
@@ -8,13 +7,14 @@ Page({
    */
   data: {
     faceCardList: [],
-    pageNumber: 0
+    pageNumber: 0,
+    pageInfo: {}
   },
 
   /**
    * 生命周期函数--监听页面加载
    */
-  onShow: function (options) {
+  onShow: function(options) {
     this.setData({
       pageNumber: 0
     });
@@ -22,7 +22,7 @@ Page({
 
   },
 
-  getMore: function () {
+  getMore: function() {
     var that = this;
     that.setData({
       pageNumber: that.data.pageNumber + 1
@@ -40,7 +40,7 @@ Page({
           });
         }
         var list = that.data.faceCardList;
-        result.data.list.forEach(function (res) {
+        result.data.list.forEach(function(res) {
           list.push(res)
         })
 
@@ -65,7 +65,8 @@ Page({
       method: 'GET',
       success(result) {
         that.setData({
-          faceCardList: result.data.list
+          faceCardList: result.data.list,
+          pageInfo: result.data.pageInfo
         });
       },
       fail(err) {
@@ -75,12 +76,12 @@ Page({
   },
 
 
-  fciTouchS: function (e) {
+  fciTouchS: function(e) {
     var that = this;
     if (e.touches.length == 1) {
       var query = wx.createSelectorQuery();
       query.select('.list > .item > .btn').boundingClientRect()
-      query.exec(function (res) {
+      query.exec(function(res) {
         that.setData({
           delBtnWidth: res[0].width
         });
@@ -90,7 +91,7 @@ Page({
       });
     }
   },
-  fciTouchM: function (e) {
+  fciTouchM: function(e) {
     var that = this;
     var index = e.currentTarget.dataset.index;
     var list = that.data.faceCardList;
@@ -99,8 +100,7 @@ Page({
       var disX = this.data.startX - moveX;
       var style = "";
       if (disX == 0 || disX < 0) {
-        if (style != '0px') {
-        }
+        if (style != '0px') {}
       } else if (disX > 30) {
         style = "-" + disX + "px";
         if (disX >= this.data.delBtnWidth) {
@@ -114,7 +114,7 @@ Page({
 
     }
   },
-  fciTouchE: function (e) {
+  fciTouchE: function(e) {
     console.log("touchE" + e);
     var that = this
     if (e.changedTouches.length == 1) {
@@ -122,7 +122,7 @@ Page({
     }
   },
 
-  deleteItem: function (e) {
+  deleteItem: function(e) {
     var that = this;
     var id = e.currentTarget.dataset.id
     api.get({
@@ -142,10 +142,21 @@ Page({
   },
 
 
-  itemTap: function (e) {
+  itemTap: function(e) {
     var id = this.data.faceCardList[e.currentTarget.dataset.index].faceCard.id
-    wx.navigateTo({
-      url: '/pages/faceCardShare/faceCardShare?faceCardId=' + id,
-    })
+
+    console.log(this.data.faceCardList[e.currentTarget.dataset.index].faceCard.isRemove)
+    if (this.data.faceCardList[e.currentTarget.dataset.index].faceCard.isRemove) {
+      util.showError('该脸卡已删除')
+    } else {
+      wx.navigateTo({
+        url: '/pages/faceCardShare/faceCardShare?faceCardId=' + id + '&navFlag=true',
+      })
+    }
+
+  },
+
+  onReachBottom: function() {
+    this.getMore();
   }
 })

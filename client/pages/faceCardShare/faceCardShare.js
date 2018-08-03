@@ -10,14 +10,20 @@ Page({
   data: {
     faceCardId: '',
     faceCard: {},
-    recommendFlag: false
+    recommendFlag: false,
+    collectedFlag: false,
+    collectionId: '',
+    navFlag:false
   },
 
   /**
    * 生命周期函数--监听页面加载
    */
   onLoad: function (options) {
-    console.log(options)
+
+
+    var that = this;
+
     this.setData({
       faceCardId: options.faceCardId
       // faceCardId: 'r1eAS4QNQ'
@@ -29,8 +35,36 @@ Page({
       })
     }
 
+    if (options.navFlag) {
+      this.setData({
+        navFlag: true
+      })
+    }
 
-    var that = this;
+    api.get({
+      url: 'https://www.facecardpro.com/wep/collection/getOne',
+      method: 'GET',
+      data: {
+        faceCardId: that.data.faceCardId
+      },
+      success(result) {
+        console.log(result.data.message)
+        if (result.data.message == '已收藏过！'){
+          console.log('已收藏过！')
+          that.setData({
+            collectedFlag: true,
+            collectionId: result.data.id
+          })
+        }
+      },
+      fail(err) {
+        util.showError('保存失败')
+      }
+    });
+    
+
+
+    
     // api.get({
     //   url: 'https://www.facecardpro.com/wep/faceCard/getOne',
     //   method: 'GET',
@@ -57,6 +91,20 @@ Page({
         that.setData({
           faceCard: result.data.faceCard
         });
+        api.get({
+          url: 'https://www.facecardpro.com/wep/view/addOne',
+          method: 'POST',
+          data: {
+            faceCardId: that.data.faceCardId
+          },
+          success(result) {
+            console.log(result);
+          },
+          fail(err) {
+            util.showError('保存失败')
+          }
+        });
+
       },
       fail(err) {
         util.showError('获取失败')
@@ -90,19 +138,7 @@ Page({
   bindGetUserInfo: function (e) {
     const session = qcloud.getSession()
     if (session) {
-      qcloud.loginWithCode({
-        success: res => {
-          this.setData({
-            userInfo: res,
-            logged: true
-          })
-          this.doCollection();
-        },
-        fail: err => {
-          console.error(err)
-          util.showModel('登录错误', err.message)
-        }
-      })
+      this.doCollection();
     } else {
       util.showBusy('正在登录')
       qcloud.login({
@@ -131,6 +167,10 @@ Page({
         faceCardId: that.data.faceCardId
       },
       success(result) {
+        that.setData({
+          collectedFlag: true,
+          collectionId: result.data.id
+        })
         api.get({
           url: 'https://www.facecardpro.com/wep/faceCard/updateLikeNum',
           method: 'GET',
@@ -176,7 +216,7 @@ Page({
   onShareAppMessage: function () {
     var faceCardId = this.data.faceCardId;
     return {
-      title: '脸卡',
+      title: '快来建立属于您的脸卡',
       path: '/pages/faceCardShare/faceCardShare?faceCardId=' + faceCardId,
       success: (res) => {
         console.log("转发成功", res);
@@ -186,4 +226,25 @@ Page({
       }
     }
   },
+
+  deleteCollection: function () {
+    var that = this;
+    api.get({
+      url: 'https://www.facecardpro.com/wep/collection/deleteOne',
+      method: 'GET',
+      data: {
+        ids: that.data.collectionId
+      },
+      success(result) {
+        util.showSuccess('取消成功')
+        that.setData({
+          collectedFlag: false
+        })
+      },
+      fail(err) {
+        util.showError('删除失败')
+      }
+    })
+  },
+  
 })

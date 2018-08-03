@@ -8,58 +8,103 @@
       <!-- <button wx:if="{{editFlag}}" data-target='facePhoto' class='upload-btn' bindtap='uploadImg'></button> -->
     </view>
     <view class='side photoHolder'>
+      <image class='side-icon' wx:if="{{!editFlag}}" src='https://www.facecardpro.com/public/wximg/otherside.png'></image>
       <image class='add-icon' wx:if="{{editFlag}}" src='https://www.facecardpro.com/public/wximg/add.png'></image>
       <text wx:if="{{!faceCard.sidePhoto}}" class='uploadBtn'>添加侧面</text>
       <image wx:if="{{faceCard.sidePhoto}}" class="photo userPhoto" src="{{'https://www.facecardpro.com' + faceCard.sidePhoto}}" mode='aspectFill'></image>
       <button wx:if="{{editFlag}}" data-target='sidePhoto' class='upload-btn' bindtap='uploadImg'></button>
     </view>
     <view class='back photoHolder'>
+     <image class='side-icon' wx:if="{{!editFlag}}" src='https://www.facecardpro.com/public/wximg/backside.png'></image>
       <image class='add-icon' wx:if="{{editFlag}}" src='https://www.facecardpro.com/public/wximg/add.png'></image>
-      <text wx:if="{{!faceCard.backPhoto}}" class='uploadBtn'>添加侧面</text>
+      <text wx:if="{{!faceCard.backPhoto}}" class='uploadBtn'>添加背面</text>
       <image wx:if="{{faceCard.backPhoto}}" class="photo userPhoto" src="{{'https://www.facecardpro.com' + faceCard.backPhoto}}" mode='aspectFill'></image>
       <button wx:if="{{editFlag}}" data-target='backPhoto' class='upload-btn' bindtap='uploadImg'></button>
     </view>
   </view>
 
-  <view wx:if="{{!editFlag}}" class='list-holder'>
-    <view class='list-item'>
-      <text>这些发型看来都很适合你</text>
-      <view class='image-holder' wx:for="{{faceCard.recommendPic}}" wx:item="{{item}}" wx:key="{{index}}">
-        <image mode='aspectFill' bindtap="imgPreview" src="{{'https://www.facecardpro.com' + item}}" data-list="{{faceCard.recommendPic}}" data-src="{{'https://www.facecardpro.com' + item}}"></image>
+  <view wx:if="{{!editFlag}}" class='list'>
+    <view class='item'>
+      <view class='main'>
+        <text class='ft-1'>您的脸型属于  </text>
+        <text class='ft-1' wx:if="{{faceCard.face_shape=='square'}}">正方形</text>
+        <text class='ft-1' wx:if="{{faceCard.face_shape=='triangle'}}">三角形</text>
+        <text class='ft-1' wx:if="{{faceCard.face_shape=='oval'}}">椭圆形</text>
+        <text class='ft-1' wx:if="{{faceCard.face_shape=='heart'}}">心形</text>
+        <text class='ft-1' wx:if="{{faceCard.face_shape=='round'}}">圆形</text>
+
+        <view class='image-left-holder'>
+          <image class='icon' wx:if="{{faceCard.face_shape=='square'}}" src="https://www.facecardpro.com/public/wximg/square.png"></image>
+          <image class='icon' wx:if="{{faceCard.face_shape=='triangle'}}" src="https://www.facecardpro.com/public/wximg/triangle.png"></image>
+          <image class='icon' wx:if="{{faceCard.face_shape=='oval'}}" src="https://www.facecardpro.com/public/wximg/oval.png"></image>
+          <image class='icon' wx:if="{{faceCard.face_shape=='heart'}}" src="https://www.facecardpro.com/public/wximg/heart.png"></image>
+          <image class='icon' wx:if="{{faceCard.face_shape=='round'}}" src="https://www.facecardpro.com/public/wximg/round.png"></image>
+        </view>
+
+        <view class='detail' >
+          <view class='right-holder' style='right: 0;'>
+            <text class='up'>{{faceCard.clickNum}} 看过</text>
+            <view class='down'>
+              <image src='https://www.facecardpro.com/public/wximg/location.png'></image>
+              <text>{{faceCard.likeNum}} 收藏</text>
+            </view>
+          </view>
+        </view>
       </view>
     </view>
-    <view class='list-item'>
-      <text>脸型</text>
-      <text class='param' wx:if="{{faceCard.face_shape=='square'}}">正方形</text>
-      <text class='param' wx:if="{{faceCard.face_shape=='triangle'}}">三角形</text>
-      <text class='param' wx:if="{{faceCard.face_shape=='oval'}}">椭圆</text>
-      <text class='param' wx:if="{{faceCard.face_shape=='heart'}}">心形</text>
-      <text class='param' wx:if="{{faceCard.face_shape=='round'}}">圆形</text>
+    <view class='item' style='border-top: 0rpx;'>
+      <view class='main'>
+        <text class='ft-1'>这些发型看来都很适合您</text>
+        <view class='detail'>
+          <view class='image-holder' wx:for="{{faceCard.recommendPic}}" wx:item="{{item}}" wx:key="{{index}}">
+            <image mode='aspectFill' bindtap="imgPreview" src="{{'https://www.facecardpro.com' + item}}" data-list="{{faceCard.recommendPic}}" data-src="{{'https://www.facecardpro.com' + item}}"></image>
+          </view>
+        </view>
+      </view>
     </view>
-    <view class='list-item'>
-      <text>发质</text>
-      <text class='param' wx:if="{{faceCard.hairQuality=='SOFT'}}">柔软</text>
-      <text class='param' wx:if="{{faceCard.hairQuality=='NORMAL'}}">普通</text>
-      <text class='param' wx:if="{{faceCard.hairQuality=='HARD'}}">硬</text>
+    <view class='item'>
+      <view class='main'>
+        <text class='ft-2'>发质</text>
+        <view class='detail'>
+          <text class='ft-1' wx:if="{{faceCard.hairQuality=='SOFT'}}">柔软</text>
+          <text class='ft-1' wx:if="{{faceCard.hairQuality=='NORMAL'}}">普通</text>
+          <text class='ft-1' wx:if="{{faceCard.hairQuality=='HARD'}}">硬</text>
+        </view>
+      </view>
     </view>
-    <view class='list-item'>
-      <text>发量</text>
-      <text class='param' wx:if="{{faceCard.hairQuantity=='LITTLE'}}">少</text>
-      <text class='param' wx:if="{{faceCard.hairQuantity=='NORMAL'}}">普通</text>
-      <text class='param' wx:if="{{faceCard.hairQuantity=='LOT'}}">较多</text>
+
+    <view class='item'>
+      <view class='main'>
+        <text class='ft-2'>发量</text>
+        <view class='detail'>
+          <text class='ft-1' wx:if="{{faceCard.hairQuantity=='LITTLE'}}">少</text>
+          <text class='ft-1' wx:if="{{faceCard.hairQuantity=='NORMAL'}}">普通</text>
+          <text class='ft-1' wx:if="{{faceCard.hairQuantity=='LOT'}}">较多</text>
+        </view>
+      </view>
     </view>
-    <view class='list-item'>
-      <text>粗细</text>
-      <text class='param' wx:if="{{faceCard.hairGranularity=='THIN'}}">细</text>
-      <text class='param' wx:if="{{faceCard.hairGranularity=='NORMAL'}}">普通</text>
-      <text class='param' wx:if="{{faceCard.hairGranularity=='THICK'}}">较硬</text>
+
+    <view class='item'>
+      <view class='main'>
+        <text class='ft-2'>粗细</text>
+        <view class='detail'>
+          <text class='ft-1' wx:if="{{faceCard.hairGranularity=='THIN'}}">细</text>
+          <text class='ft-1' wx:if="{{faceCard.hairGranularity=='NORMAL'}}">普通</text>
+          <text class='ft-1' wx:if="{{faceCard.hairGranularity=='THICK'}}">较硬</text>
+        </view>
+      </view>
     </view>
-    <view class='list-item'>
-      <text>卷曲</text>
-      <text class='param' wx:if="{{faceCard.hairCrispation=='NONE'}}">无</text>
-      <text class='param' wx:if="{{faceCard.hairCrispation=='NORMAL'}}">普通</text>
-      <text class='param' wx:if="{{faceCard.hairCrispation=='LOT'}}">较卷</text>
+    <view class='item'>
+      <view class='main'>
+        <text class='ft-2'>卷曲</text>
+        <view class='detail'>
+          <text class='ft-1' wx:if="{{faceCard.hairCrispation=='NONE'}}">无</text>
+          <text class='ft-1' wx:if="{{faceCard.hairCrispation=='NORMAL'}}">普通</text>
+          <text class='ft-1' wx:if="{{faceCard.hairCrispation=='LOT'}}">较卷</text>
+        </view>
+      </view>
     </view>
+
   </view>
   <view wx:if="{{editFlag}}" class='list-holder edit'>
     <view class='edit-item'>
@@ -139,7 +184,7 @@
 
   <view class='bottom-btn-holder'>
     <button wx:if="{{!editFlag}}" class='half-btn gray' bindtap='editFaceCard'>编辑</button>
-    <button wx:if="{{!editFlag}}" class='half-btn blue' open-type='share'>生成分享海报</button>
+    <button wx:if="{{!editFlag}}" class='half-btn blue' open-type='share'>分享</button>
     <button wx:if="{{editFlag}}" class='whole-btn blue' bindtap='saveFaceCard'>完成</button>
   </view>
 
