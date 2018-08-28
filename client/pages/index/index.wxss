@@ -181,6 +181,7 @@ view {
   top: -1rpx;
 }
 
+
 .list .item .main .left-holder{
   left: 219rpx;
   top: 19rpx;
@@ -188,14 +189,14 @@ view {
   height: 160rpx;
 }
 
-.list .item .main .left-holder .up{
+/* .list .item .main .left-holder .up{
   left: 0;
   top: 0;
   width: 200rpx;
   height: 48rpx;
   line-height: 48rpx;
   font-size: 34rpx;
-}
+} */
 
 .list .item .main .left-holder .down{
   bottom: 55rpx;

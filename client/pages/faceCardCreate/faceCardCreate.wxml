@@ -1,25 +1,30 @@
 <!--index.wxml-->
 <view class="container" id='main'>
   <!-- 用户登录测试 -->
-  <view class='cover' wx:if="{{!resultFlag}}" animation = "{{coverAnimation}}">
+  <view class='cover' wx:if="{{!resultFlag}}" animation="{{coverAnimation}}">
 
   </view>
-  <view class='ani-holder'>
-
+  <view wx:if="{{!retryFlag}}" class='ani-holder'>
     <view class="pic-holder" animation="{{animationPicData}}">
       <view class='image-holder'>
-        <image wx:if="{{tempPhotoPath}}" src="{{tempPhotoPath}}" mode='aspectFill' data-list="{{[(faceCard.facePhoto)]}}" data-src="{{'https://www.facecardpro.com' + faceCard.facePhoto}}"  bindtap="imgPreview"></image>
-
-        <!-- <image wx:if="{{'https://www.facecardpro.com' + faceCard.facePhoto}}" src="{{'https://www.facecardpro.com' + faceCard.facePhoto}}" mode='aspectFill' data-list="{{[(faceCard.facePhoto)]}}" data-src="{{'https://www.facecardpro.com' + faceCard.facePhoto}}"  bindtap="imgPreview"></image> -->
+        <image wx:if="{{tempPhotoPath}}" src="{{tempPhotoPath}}" mode='aspectFill' data-list="{{[(faceCard.facePhoto)]}}" data-src="{{'https://www.facecardpro.com' + faceCard.facePhoto}}" bindtap="imgPreview"></image>
       </view>
-
-      <!-- <view class='image-holder'>
-        <image wx:if="{{imgUrl}}" src="{{'https://www.facecardpro.com' +imgUrl}}" mode='aspectFill' data-list="{{[(faceCard.facePhoto)]}}" data-src="{{'https://www.facecardpro.com' + faceCard.facePhoto}}"  bindtap="imgPreview"></image>
-      </view> -->
-
       <view class='list-Holder' animation="{{animationData}}">
         <view class='image-holder' wx:for="{{refImgList}}" wx:key="index" wx:for-item="item">
           <image wx:if="{{refImgList}}" src="{{'https://www.facecardpro.com' + item.src}}" data-list="{{[(item.src)]}}" data-src="{{'https://www.facecardpro.com' + item.src}}" mode='aspectFill' bindtap="imgPreview"></image>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{retryFlag}}" class='ani-holder retry'>
+    <view class="pic-holder" animation="{{animationPicData}}">
+      <view class='image-holder'>
+        <image wx:if="{{tempPhotoPath}}" src="{{tempPhotoPath}}" mode='aspectFill' data-list="{{[(faceCard.facePhoto)]}}" data-src="{{'https://www.facecardpro.com' + faceCard.facePhoto}}" bindtap="imgPreview"></image>
+      </view>
+      <view class='list-Holder' animation="{{animationData}}">
+        <view class='image-holder' wx:for="{{refImgList}}" wx:key="index" wx:for-item="item">
+          <image wx:if="{{refImgList}}" src="{{'https://www.facecardpro.com' + item.src}}" data-id="{{item.id}}" data-src="{{'https://www.facecardpro.com' + item.src}}" mode='aspectFill' bindtap="photoClick"></image>
         </view>
       </view>
     </view>
@@ -29,7 +34,8 @@
     <image class='validIcon' src='https://www.facecardpro.com/public/wximg/avatar1.png'></image>
     <view class='validText'>
       <view>
-        经过阿发确认，与您最相似的明星<text>\n竟然是 </text>
+        经过阿发确认，与您最相似的{{retryFlag?'脸卡':'明星'}}
+        <text>\n{{retryFlag?'':'竟然'}}是 </text>
         <text wx:if="{{refImgList[index].name}}">{{refImgList[index].name}}!!!</text>
       </view>
     </view>
@@ -69,8 +75,12 @@
       <view class='main'>
         <text class='ft-1'>这些发型看来都很适合您</text>
         <view class='detail'>
-          <view class='image-holder' wx:for="{{faceCard.recommendPic}}" wx:item="{{item}}" wx:key="{{index}}">
+          <view wx:if="{{!retryFlag}}"  class='image-holder' wx:for="{{faceCard.recommendPic}}" wx:item="{{item}}" wx:key="{{index}}">
             <image mode='aspectFill' bindtap="imgPreview" src="{{'https://www.facecardpro.com' + item}}" data-list="{{faceCard.recommendPic}}" data-src="{{'https://www.facecardpro.com' + item}}"></image>
+          </view>
+
+          <view wx:if="{{retryFlag}}"  class='image-holder' wx:for="{{faceCard.recommendPic}}" wx:item="{{item}}" wx:key="{{index}}">
+            <image mode='aspectFill' bindtap="photoClickItem" src="{{'https://www.facecardpro.com' + item}}" data-index="{{index}}" data-src="{{'https://www.facecardpro.com' + item}}"></image>
           </view>
         </view>
       </view>
@@ -89,13 +99,18 @@
   </view> -->
 
   <view class='bottom-btn-holder'>
-    
-    <button wx:if="{{retryFlag}}" class='half-btn gray' open-type='share' bindtap='share'>分享</button>
-    <button wx:if="{{retryFlag}}" class='half-btn blue' bindtap='retry'>换一张</button>
-    <!-- <button wx:if="{{retryFlag}}" class='btn little blue' bindtap='drawQrcode'>朋友圈</button> -->
-    <button wx:if="{{!retryFlag}}" class='whole-btn blue' open-type='share'>分享出去吧</button>
+    <button wx:if="{{retryFlag}}" class='half-btn gray' bindtap='retry'>换一张</button>
+    <button wx:if="{{retryFlag&&!collectedFlag}}" class='btn half-btn blue' bindtap="doCollection">收藏推荐卡片</button>
+    <button wx:if="{{retryFlag&&collectedFlag}}" class='btn half-btn gray' bindtap='deleteCollection'>取消收藏卡片</button>
+
+
+    <button wx:if="{{!retryFlag}}" class='btn little gray' open-type='share'>分享</button>
+    <button wx:if="{{!retryFlag}}" class='btn little gray' bindtap='retry'>换一张</button>
+
+    <button wx:if="{{!retryFlag}}" class='btn little blue' bindtap='drawQrcode'>朋友圈</button>
+    <!-- <button wx:if="{{!retryFlag}}" class='whole-btn blue' open-type='share'>分享出去吧</button> -->
   </view>
-<view class="canvas-holder" hidden="{{!shareQrFlag}}" id='canvas-holder'>
+  <view class="canvas-holder" hidden="{{!shareQrFlag}}" id='canvas-holder'>
     <canvas class='canvas' canvas-id="myCanvas" id='myCanvas' />
   </view>
 

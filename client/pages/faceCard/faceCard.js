@@ -2,6 +2,7 @@ var config = require('../../config')
 var qcloud = require('../../vendor/wafer2-client-sdk/index')
 var util = require('../../utils/util.js')
 var api = require('../../utils/api.js')
+var addView = require('../../utils/addView.js')
 Page({
 
   /**
@@ -17,6 +18,11 @@ Page({
       { name: 'oval', value: '椭圆', src: 'https://www.facecardpro.com/public/wximg/oval.png' },
       { name: 'heart', value: '心形', src: 'https://www.facecardpro.com/public/wximg/heart.png' },
       { name: 'round', value: '圆形', src: 'https://www.facecardpro.com/public/wximg/round.png' }
+    ],
+    hairLengthItems: [
+      { name: 'SHORT', value: '短' },
+      { name: 'NORMAL', value: '普通' },
+      { name: 'LONG', value: '长' }
     ],
     hairQualityItems: [
       { name: 'SOFT', value: '柔软' },
@@ -58,19 +64,6 @@ Page({
       success(result) {
         that.setData({
           faceCard: result.data.faceCard
-        });
-        api.get({
-          url: 'https://www.facecardpro.com/wep/view/addOne',
-          method: 'POST',
-          data: {
-            faceCardId: that.data.faceCardId
-          },
-          success(result) {
-            console.log(result);
-          },
-          fail(err) {
-            util.showError('保存失败')
-          }
         });
       },
       fail(err) {
@@ -122,6 +115,13 @@ Page({
     });
   },
 
+  hairLengthChange: function (e) {
+    var str = 'faceCard.hairLength'
+    this.setData({
+      [str]: e.detail.value
+    });
+  },
+
   hairQualityChange: function (e) {
     var str = 'faceCard.hairQuality'
     this.setData({
@@ -158,14 +158,13 @@ Page({
   },
 
   editFaceCard: function () {
+    addView(this.data.faceCardId, 'EDIT');
     this.setData({
       editFlag: true
     });
   },
 
   saveFaceCard: function () {
-
-    
     util.showBusy('正在保存')
     var that = this;
     qcloud.request({
@@ -191,8 +190,11 @@ Page({
     var imgList = Array();
     var list = e.currentTarget.dataset.list
     list.forEach(function (res) {
+      if (res){
+        imgList.push('https://www.facecardpro.com' + res)
+      }
       console.log(res);
-      imgList.push('https://www.facecardpro.com' + res)
+      
     })
 
     wx.previewImage({
@@ -245,6 +247,7 @@ Page({
   },
 
   onShareAppMessage: function () {
+    addView(this.data.faceCardId, 'SHARE');
     var faceCardId = this.data.faceCardId;
     return {
       title: '快来建立属于您的脸卡',

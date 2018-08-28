@@ -2,6 +2,7 @@ var config = require('../../config')
 var qcloud = require('../../vendor/wafer2-client-sdk/index')
 var util = require('../../utils/util.js')
 var api = require('../../utils/api.js')
+var addView = require('../../utils/addView.js')
 var QQMapWX = require('../../vendor/qqmap-wx-jssdk.min.js')
 var qqmapsdk
 Page({
@@ -18,6 +19,8 @@ Page({
     refImgList: [],
     recommendPic: [],
     tempPhotoPath: '',
+    collectedFlag: false,
+    collectionId: '',
     shareQrFlag: false,
     faceCardId: '',
     qrCanvas: {},
@@ -60,26 +63,27 @@ Page({
     var query = wx.createSelectorQuery();
     query.select('.pic-holder>.image-holder').boundingClientRect()
     query.exec(function (res) {
-      temp['picWidth']  = res[0].width,
-      temp['picHeight'] = res[0].height
+      temp['picWidth'] = res[0].width,
+        temp['picHeight'] = res[0].height
       that.setData({
         qrCanvas: temp
       })
       console.log('qrCanvas' + JSON.stringify(that.data.qrCanvas))
     })
 
-   
 
-    
+
+
     // options.faceCardId = 'Hyda9H1rm'
-    if(options.faceCardId){
+    if (options.faceCardId) {
       this.setData({
         faceCardId: options.faceCardId,
         retryFlag: true
       })
+      console.log(options.faceCardId)
 
       wx.setNavigationBarTitle({
-        title: '再次比对'
+        title: '看看推荐'
       })
 
       api.get({
@@ -99,7 +103,7 @@ Page({
         }
       });
 
-    }else {
+    } else {
       wx.setNavigationBarTitle({
         title: '建立脸卡'
       })
@@ -110,71 +114,83 @@ Page({
           path: that.data.imgUrl
         },
         success(result) {
-          var info = result.data.info[0]
-          var faceCardResult = {
-            age: info.age,
-            yaw: info.angle.yaw,
-            pitch: info.angle.pitch,
-            roll: info.angle.roll,
-            beauty: info.beauty,
-            expression: info.expression.type,
-            face_probability: info.face_probability,
-            face_shape: info.face_shape.type,
-            face_token: info.face_token,
-            gender: info.gender.type,
-            glasses: info.glasses.type,
-            landmark: JSON.stringify(info.landmark),
-            landmark72: JSON.stringify(info.landmark72),
-            location: JSON.stringify(info.location),
-            race: info.race.type,
-            street: info.street,
-            district: info.district
-          }
-
-          that.setData({
-            faceCard: faceCardResult
-          })
-          qqmapsdk = new QQMapWX({
-            key: 'DU3BZ-YRT6P-JRYDT-VTWGK-LRH2F-5MBFD'
-          });
-          wx.getLocation({
-            type: 'gcj02',
-            success: function (res) {
-              console.log(res);
-              qqmapsdk.reverseGeocoder({
-                location: {
-                  latitude: res.latitude,
-                  longitude: res.longitude
-                },
-                success: function (addressRes) {
-                  var district = 'faceCard.district'
-                  var street = 'faceCard.street'
-                  var city = 'faceCard.city'
-                  that.setData({
-                    [district]: addressRes.result.address_component.district,
-                    [street]: addressRes.result.address_component.street,
-                    [city]: addressRes.result.address_component.city
-                  })
-                  that.getRecommendPic();
-                }
+          if (result.data.state == 'error'){
+            util.showError('无法识别脸型')
+            setTimeout(function(){
+              wx.switchTab({
+                url: '/pages/index/index'
               })
-            },
-            fail: function (err) {
-              that.getRecommendPic();
-              // util.showBusy('获取地址错误')
+            },3000)
+            
+          }else{
+            var info = result.data.info[0]
+            var faceCardResult = {
+              age: info.age,
+              yaw: info.angle.yaw,
+              pitch: info.angle.pitch,
+              roll: info.angle.roll,
+              beauty: info.beauty,
+              expression: info.expression.type,
+              face_probability: info.face_probability,
+              face_shape: info.face_shape.type,
+              face_token: info.face_token,
+              gender: info.gender.type,
+              glasses: info.glasses.type,
+              landmark: JSON.stringify(info.landmark),
+              landmark72: JSON.stringify(info.landmark72),
+              location: JSON.stringify(info.location),
+              race: info.race.type,
+              street: info.street,
+              district: info.district
             }
-          })
+
+            that.setData({
+              faceCard: faceCardResult
+            })
+            qqmapsdk = new QQMapWX({
+              key: 'DU3BZ-YRT6P-JRYDT-VTWGK-LRH2F-5MBFD'
+            });
+            wx.getLocation({
+              type: 'gcj02',
+              success: function (res) {
+                console.log(res);
+                qqmapsdk.reverseGeocoder({
+                  location: {
+                    latitude: res.latitude,
+                    longitude: res.longitude
+                  },
+                  success: function (addressRes) {
+                    var district = 'faceCard.district'
+                    var street = 'faceCard.street'
+                    var city = 'faceCard.city'
+                    that.setData({
+                      [district]: addressRes.result.address_component.district,
+                      [street]: addressRes.result.address_component.street,
+                      [city]: addressRes.result.address_component.city
+                    })
+                    that.getRecommendPic();
+                  }
+                })
+              },
+              fail: function (err) {
+                that.getRecommendPic();
+                // util.showBusy('获取地址错误')
+              }
+            })
+          }
+          
         },
         fail(err) {
           console.error('登录失败，可能是网络错误或者服务器发生异常')
         }
       });
     }
-    
+
   },
 
   retry: function () {
     var that = this;
+    addView(this.data.faceCardId, 'RETRY');
     var query = wx.createSelectorQuery();
     query.select('.ani-holder').boundingClientRect()
     query.exec(function (res) {
@@ -188,7 +204,37 @@ Page({
       that.setData({
         animationData: that.animationData.export()
       })
+      that.checkCollectioned();
     })
+
+    
+  },
+
+  checkCollectioned: function () {
+    var that = this;
+    console.log(that.data.refImgList[that.data.index].id)
+    api.get({
+      url: 'https://www.facecardpro.com/wep/collection/getOne',
+      method: 'GET',
+      data: {
+        faceCardId: that.data.refImgList[0] ? that.data.refImgList[that.data.index].id : ''
+      },
+      success(result) {
+        if (result.data.message == '已收藏过！') {
+          that.setData({
+            collectedFlag: true,
+            collectionId: result.data.id
+          })
+        } else {
+          that.setData({
+            collectedFlag: false
+          })
+        }
+      },
+      fail(err) {
+        util.showError('获取收藏信息失败')
+      }
+    });
   },
 
 
@@ -197,8 +243,9 @@ Page({
     var that = this;
     var list = [];
     var resultList = [];
+    var url = that.data.retryFlag ? 'https://www.facecardpro.com/wep/faceCard/getAll' : 'https://www.facecardpro.com/wep/star/getAll'
     api.get({
-      url: 'https://www.facecardpro.com/wep/star/getAll',
+      url: url,
       method: 'GET',
       data: {
         gender: that.data.faceCard.gender,
@@ -210,7 +257,20 @@ Page({
       success(result) {
         util.showSuccess('测算结束')
         result.data.list.forEach(function (res) {
-          if(res){
+          if(that.data.retryFlag){
+            if (res) {
+              list.push({
+                src: res.facePhoto,
+                name: res.author ? res.author.wxUserInfo.nickName : '',
+                id: res._id
+              })
+
+              if (list.length < 4) {
+                resultList.push(res.facePhoto)
+              }
+            }
+          }else {
+            if (res) {
             list.push({
               src: res.src,
               name: res.name,
@@ -219,7 +279,9 @@ Page({
             if (list.length < 4) {
               resultList.push(res.src)
             }
+            }
           }
+          
         })
         var i = 0;
         while (list.length < 20) {
@@ -251,13 +313,13 @@ Page({
           [recommendPic]: resultList
         })
 
-        if (!that.data.faceCardId){
+        if (!that.data.faceCardId) {
           that.saveFaceCard();
         } else {
           that.backAni();
         }
 
-        
+        that.checkCollectioned();
       },
       fail(err) {
         console.error('登录失败，可能是网络错误或者服务器发生异常')
@@ -306,9 +368,11 @@ Page({
   updateFaceCard: function () {
     var that = this;
     var star = 'faceCard.star'
-    console.log(that.data.refImgList[that.data.index].name)
+    var id = 'faceCard._id'
+    console.log(that.data.refImgList[that.data.index].id)
     that.setData({
       [star]: that.data.refImgList[0] ? that.data.refImgList[that.data.index].id : '',
+      [id]: that.data.faceCardId
     })
 
     api.get({
@@ -324,7 +388,7 @@ Page({
     })
   },
 
-  
+
 
 
 
@@ -340,7 +404,7 @@ Page({
         that.setData({
           faceCardId: result.data.data.id
         })
-        
+
         setTimeout(function () {
           var query = wx.createSelectorQuery();
           query.select('.pic-holder').boundingClientRect()
@@ -382,9 +446,11 @@ Page({
 
   onShareAppMessage: function () {
     var faceCardId = this.data.faceCardId;
+    this.updateFaceCard()
     if (!faceCardId) {
       console.log('请先保存')
     } else {
+      addView(faceCardId, 'SHARE');
       return {
         title: '快来看看您长得像谁？',
         path: '/pages/faceCardCreateShare/faceCardCreateShare?faceCardId=' + faceCardId,
@@ -473,8 +539,8 @@ Page({
   //   console.log('this.data.qrCanvas.height' + this.data.qrCanvas.picHeight)
   // },
 
-  getImageinfo: function (imagePath){
-    return new Promise((resolve,reject)=> {
+  getImageinfo: function (imagePath) {
+    return new Promise((resolve, reject) => {
       console.log(imagePath)
       wx.getImageInfo({
         src: imagePath,//服务器返回的带参数的小程序码地址
@@ -487,10 +553,92 @@ Page({
       })
     })
   },
-
-
-  async drawQrcode () {
+  deleteCollection: function () {
     var that = this;
+    console.log(that.data.refImgList[that.data.index].id)
+    api.get({
+      url: 'https://www.facecardpro.com/wep/collection/deleteOne',
+      method: 'GET',
+      data: {
+        ids: that.data.collectionId
+      },
+      success(result) {
+        util.showSuccess('取消成功')
+        that.setData({
+          collectedFlag: false
+        })
+      },
+      fail(err) {
+        util.showError('删除失败')
+      }
+    })
+  },
+
+  photoClick: function (e) {
+    var id = e.currentTarget.dataset.id
+    wx.navigateTo({
+      url: '/pages/faceCardShare/faceCardShare?faceCardId=' + id + '&navFlag=true',
+    })
+  },
+
+  photoClickItem: function (e) {
+    var that = this
+    var id = that.data.refImgList[e.currentTarget.dataset.index].id
+
+    wx.navigateTo({
+      url: '/pages/faceCardShare/faceCardShare?faceCardId=' + id + '&navFlag=true',
+    })
+  },
+
+  doCollection: function () {
+    var that = this;
+    console.log(that.data.refImgList[that.data.index].id)
+    addView(this.data.faceCardId, 'COLLECTION');
+    api.get({
+      url: 'https://www.facecardpro.com/wep/collection/addOne',
+      method: 'POST',
+      data: {
+        faceCardId: that.data.refImgList[0] ? that.data.refImgList[that.data.index].id : ''
+      },
+      success(result) {
+        if (result.data.state == 'success') {
+          that.setData({
+            collectedFlag: true,
+            collectionId: result.data.id
+          })
+          api.get({
+            url: 'https://www.facecardpro.com/wep/faceCard/updateLikeNum',
+            method: 'GET',
+            data: {
+              faceCardId: that.data.faceCardId
+            },
+            success(result) {
+              util.showSuccess('收藏成功')
+            },
+            fail(err) {
+              util.showError('收藏失败')
+            }
+          });
+        } else {
+          if (result.data.message == '超过收藏上限'){
+            util.showError('已超过收藏上限')
+          }else{
+            util.showError('已收藏过')
+          }
+          
+        }
+
+      },
+      fail(err) {
+        util.showError('收藏失败')
+      }
+    });
+  },
+
+
+  async drawQrcode() {
+    var that = this;
+    addView(this.data.faceCardId, 'MOMENTS');
     this.setData({
       shareQrFlag: true
     })
@@ -506,18 +654,18 @@ Page({
     var leftImageSh = 0;
     await this.getImageinfo('https://www.facecardpro.com' + that.data.faceCard.facePhoto).then(function (res) {
       leftImage = res.path
-      if(res.height/res.width>1.5){
+      if (res.height / res.width > 1.5) {
         console.log('height')
         leftImageSw = res.width;
         leftImageSx = 0;
-        leftImageSh = res.width *1.5;
+        leftImageSh = res.width * 1.5;
         leftImageSy = (res.height - leftImageSh) / 2
-      }else{
+      } else {
         console.log('width')
         leftImageSh = res.height;
         leftImageSy = 0;
-        leftImageSw = (res.height/3)*2;
-        leftImageSx = (res.width-leftImageSw)/2
+        leftImageSw = (res.height / 3) * 2;
+        leftImageSx = (res.width - leftImageSw) / 2
       }
     });
 
@@ -536,7 +684,7 @@ Page({
     var height = this.data.qrCanvas.height;
     var width = this.data.qrCanvas.width;
     var picWidth = this.data.qrCanvas.picWidth;
-    var picHeight = ((width / 2) / picWidth) * this.data.qrCanvas.picHeight ;
+    var picHeight = ((width / 2) / picWidth) * this.data.qrCanvas.picHeight;
 
     const rightImageName = this.data.refImgList[this.data.index].name
 
@@ -549,12 +697,12 @@ Page({
     canvasCtx.setFontSize(16);
     canvasCtx.setFillStyle('#000000');
     canvasCtx.setTextAlign('center');
-    canvasCtx.fillText('经过阿发确认，与您最相似的明星', width / 2, picHeight+40);
+    canvasCtx.fillText('经过阿发确认，与您最相似的明星', width / 2, picHeight + 40);
 
     canvasCtx.setFontSize(20);
     canvasCtx.setFillStyle('#000000');
     canvasCtx.setTextAlign('center');
-    canvasCtx.fillText('竟然是 ' + rightImageName + '!!!',width / 2, picHeight + 80);
+    canvasCtx.fillText('竟然是 ' + rightImageName + '!!!', width / 2, picHeight + 80);
     canvasCtx.drawImage(qrImage, width / 4, picHeight + 100, width / 2, width / 2);
     canvasCtx.draw();
     //绘制之后加一个延时去生成图片，如果直接生成可能没有绘制完成，导出图片会有问题。
@@ -586,11 +734,11 @@ Page({
                   })
                 }
               })
-            
+
               // util.showSuccess('图片已保存到相册,可分享到朋友圈！')
             },
           })
-          
+
         },
         fail: function (res) {
           console.log(res)

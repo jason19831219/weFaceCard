@@ -3,6 +3,7 @@ var qcloud = require('../../vendor/wafer2-client-sdk/index')
 var config = require('../../config')
 var util = require('../../utils/util.js')
 var api = require('../../utils/api.js')
+var addView = require('../../utils/addView.js')
 Page({
   data: {
     userInfo: {},
@@ -17,29 +18,24 @@ Page({
 
 
   onShow: function () {
-    this.setData({
-      pageNumber: 0
-    });
+    wx.pageScrollTo({
+      scrollTop: 0,
+      duration: 0
+    })
     this.loadFaceCardList();
-    // wx.getSetting({
-    //   success(res) {
-    //     // if (!res.authSetting['scope.record']) {
-    //       wx.authorize({
-    //         scope: "['scope.userLocation', 'scope.record']",
-    //         success() {
-    //           // 用户已经同意小程序使用录音功能，后续调用 wx.startRecord 接口不会弹窗询问
-    //           wx.startRecord()
-    //         }
-    //       })
-    //     // }
-    //     console.log(res)
-    //   }
-    // })
+
   },
   recommond: function () {
     var that = this;
     if (!that.data.faceCardList[0]){
-      util.showError('请先建立脸卡');
+      util.showError('只有建立过脸卡后，才能使用推荐功能哦');
+      wx.showModal({
+        content: '只有建立过脸卡后，才能使用推荐功能哦！',
+        showCancel: false,
+        confirmText: '好的',
+        success: function (res) {
+        }
+      })
       return;
     };
     api.get({
@@ -52,6 +48,7 @@ Page({
         yawMinus: that.data.faceCardList[0].yaw - 3
       },
       success(result) {
+        addView(result.data.faceCard, 'RECOMMEND');
         wx.navigateTo({
           url: '/pages/faceCardShare/faceCardShare?faceCardId=' + result.data.faceCard + '&recommendFlag=true',
         })
@@ -73,7 +70,7 @@ Page({
     app.globalData.tempPhotoPath = 'https://www.facecardpro.com' + that.data.faceCardList[0].facePhoto;
 
     wx.navigateTo({
-      url: '/pages/faceCardCreate/faceCardCreate?imgUrl=' + that.data.faceCardList[0].facePhoto + '&faceCardId=' + that.data.faceCardList[0].id,
+      url: '/pages/faceCardCreate/faceCardCreate?imgUrl=' + that.data.faceCardList[0].facePhoto + '&faceCardId=' + that.data.faceCardList[0]._id + '&retryFlag=true',
     })
   },
 
@@ -82,6 +79,10 @@ Page({
 
 
   bindGetUserInfo: function (e) {
+    if(this.data.pageInfo.totalItems>=50){
+      util.showError('已超过建卡上限！');
+      return;
+    }
     if (this.data.logged) {
       this.doUpload();
       return
@@ -132,7 +133,8 @@ Page({
         });
       })
       this.setData({
-        startX: e.touches[0].clientX
+        startX: e.touches[0].clientX,
+        startY: e.touches[0].clientY
       });
     }
   },
@@ -142,12 +144,14 @@ Page({
     var list = that.data.faceCardList;
     if (e.touches.length == 1) {
       var moveX = e.touches[0].clientX;
+      var moveY = e.touches[0].clientY;
       var disX = this.data.startX - moveX;
+      var disY = this.data.startY - moveY;
       var style = "";
       if (disX == 0 || disX < 0) {
         if (style != '0px') {
         }
-      } else if (disX > 30) {
+      } else if (disX > 30 && disY < disX) {
         style = "-" + disX + "px";
         if (disX >= this.data.delBtnWidth) {
           style = "-" + this.data.delBtnWidth + "px";
@@ -236,30 +240,21 @@ Page({
 
   getMore: function () {
     var that = this;
-    that.setData({
-      pageNumber: that.data.pageNumber+1
-    });
     api.get({
       url: 'https://www.facecardpro.com/wep/faceCard/getAll',
       method: 'GET',
       data: {
-        pageNumber: that.data.pageNumber
+        pageNumber: ++that.data.pageInfo.pageNumber
       },
       success(result) {
-        console.log(that.data.pageNumber)
-        console.log(that.data.pageInfo.totalItems)
-        if (!result.data.list.length){
-          that.setData({
-            pageNumber: that.data.pageNumber - 1
-          });
-        }
         var list = that.data.faceCardList;
         result.data.list.forEach(function (res) {
           list.push(res)
         })
       
         that.setData({
-          faceCardList: list
+          faceCardList: list,
+          pageInfo: result.data.pageInfo
         });
       },
       fail(err) {
@@ -270,9 +265,10 @@ Page({
 
   loadFaceCardList: function () {
     var that = this;
-    that.setData({
-      pageNumber: that.data.pageNumber + 1
-    });
+    wx.pageScrollTo({
+      scrollTop: 0,
+      duration: 0
+    })
     api.get({
       url: 'https://www.facecardpro.com/wep/faceCard/getAll',
       method: 'GET',
@@ -289,7 +285,8 @@ Page({
     })
   }, 
   itemTap: function (e) {
-    var id = this.data.faceCardList[e.currentTarget.dataset.index].id
+    console.log(this.data.faceCardList[e.currentTarget.dataset.index]._id)
+    var id = this.data.faceCardList[e.currentTarget.dataset.index]._id
     wx.navigateTo({
       url: '/pages/faceCard/faceCard?faceCardId=' + id,
     })
@@ -313,6 +310,11 @@ Page({
     })
   },
   onReachBottom: function () {
-    this.getMore();
+    if (this.data.pageInfo.pageNumber * 10 > this.data.pageInfo.totalItems) {
+      return;
+    } else {
+      console.log('onReachBottom')
+      this.getMore();
+    }
   }
 })

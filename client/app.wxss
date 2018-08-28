@@ -38,9 +38,9 @@ image {
   left: 0;
   width: 100%;
   text-align: center;
-  padding: 52rpx 0;
+  padding: 40rpx 0;
   z-index: 2;
-  border-top: 1px solid rgb(229, 229, 229)
+  /* border-top: 1px solid rgb(229, 229, 229) */
 }
 .btn {
   height: 94rpx;
@@ -265,7 +265,7 @@ image {
 .list .item .left-holder .up{
   position: absolute;
   top: 8rpx;
-  width: 800rpx;
+  width: 500rpx;
   height: 48rpx;
   line-height: 48rpx;
   font-size: 34rpx;
@@ -281,11 +281,15 @@ image {
 }
 
 .list .item .left-holder .up image{
-  width: 100rpx;
   height: 37rpx;
+  width: 100rpx;
   display: inline-block;
   vertical-align: middle;
   margin-left: 20rpx;
+}
+
+.list .item .left-holder .up image.large{
+  width: 126rpx;
 }
 
 .list .item .left-holder .down{
@@ -311,7 +315,7 @@ image {
   height: 26rpx;
   line-height: 26rpx;
   color: rgb(153, 153, 153);
-  width: 200rpx;
+  width:270rpx;
   margin-left: 10rpx;
   display: inline-block;
   vertical-align: middle;
@@ -430,7 +434,10 @@ image {
   display: inline-block;
   vertical-align: middle;
 }
-
+.right-part{
+  float: right;
+  margin-right: 30rpx;
+}
 .canvas-holder{
   position: fixed;
   width: 100%;

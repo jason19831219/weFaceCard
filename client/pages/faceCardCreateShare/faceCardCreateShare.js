@@ -2,6 +2,7 @@ var config = require('../../config')
 var qcloud = require('../../vendor/wafer2-client-sdk/index')
 var util = require('../../utils/util.js')
 var api = require('../../utils/api.js')
+var addView = require('../../utils/addView.js')
 Page({
 
   /**
@@ -32,26 +33,9 @@ Page({
    */
   onLoad: function (options) {
     this.setData({
-      faceCardId: options.faceCardId
-      // faceCardId: 'r1eAS4QNQ'
+      faceCardId: options.faceCardId || 'HJiLPN7VQ'
     })
     var that = this;
-    // api.get({
-    //   url: 'https://www.facecardpro.com/wep/faceCard/getOne',
-    //   method: 'GET',
-    //   data: {
-    //     faceCardId: that.data.faceCardId
-    //   },
-    //   success(result) {
-    //     that.setData({
-    //       faceCard: result.data.faceCard
-    //     });
-    //   },
-    //   fail(err) {
-    //     util.showError('保存失败')
-    //   }
-    // });
-
     api.get({
       url: 'https://www.facecardpro.com/wep/collection/getOne',
       method: 'GET',
@@ -59,9 +43,8 @@ Page({
         faceCardId: that.data.faceCardId
       },
       success(result) {
-        console.log(result.data.message)
         if (result.data.message == '已收藏过！') {
-          console.log('已收藏过！')
+          console.log(result.data.id)
           that.setData({
             collectedFlag: true,
             collectionId: result.data.id
@@ -72,9 +55,6 @@ Page({
         util.showError('保存失败')
       }
     });
-
-
-
     wx.request({
       url: 'https://www.facecardpro.com/wep/faceCard/getOne',
       method: 'GET',
@@ -84,19 +64,6 @@ Page({
       success(result) {
         that.setData({
           faceCard: result.data.faceCard
-        });
-        api.get({
-          url: 'https://www.facecardpro.com/wep/view/addOne',
-          method: 'POST',
-          data: {
-            faceCardId: that.data.faceCardId
-          },
-          success(result) {
-            console.log(result);
-          },
-          fail(err) {
-            util.showError('保存失败')
-          }
         });
       },
       fail(err) {
@@ -130,6 +97,7 @@ Page({
 
   doCollection: function () {
     var that = this;
+    addView(this.data.faceCardId, 'COLLECTION');
     api.get({
       url: 'https://www.facecardpro.com/wep/collection/addOne',
       method: 'POST',
@@ -137,23 +105,32 @@ Page({
         faceCardId: that.data.faceCardId
       },
       success(result) {
-        that.setData({
-          collectedFlag: true,
-          collectionId: result.data.id
-        })
-        api.get({
-          url: 'https://www.facecardpro.com/wep/faceCard/updateLikeNum',
-          method: 'GET',
-          data: {
-            faceCardId: that.data.faceCardId
-          },
-          success(result) {
-            util.showSuccess('收藏成功')
-          },
-          fail(err) {
-            util.showError('收藏失败')
+        if (result.data.state == 'success'){
+          that.setData({
+            collectedFlag: true,
+            collectionId: result.data.id
+          })
+          api.get({
+            url: 'https://www.facecardpro.com/wep/faceCard/updateLikeNum',
+            method: 'GET',
+            data: {
+              faceCardId: that.data.faceCardId
+            },
+            success(result) {
+              util.showSuccess('收藏成功')
+            },
+            fail(err) {
+              util.showError('收藏失败')
+            }
+          });
+        } else {
+          if (result.data.message == '超过收藏上限') {
+            util.showError('已超过收藏上限')
+          } else {
+            util.showError('已收藏过')
           }
-        });
+        }
+        
 
       },
       fail(err) {
@@ -182,10 +159,12 @@ Page({
     })
   },
 
-  onShareAppMessage: (res) => {
+  onShareAppMessage: function () {
+    var faceCardId = this.data.faceCardId;
+    addView(this.data.faceCardId, 'SHARE');
     return {
       title: '快来看看您长得像谁？',
-      path: '/pages/faceCardCreateShare/faceCardCreateShare?faceCardId=' + id,
+      path: '/pages/faceCardCreateShare/faceCardCreateShare?faceCardId=' + faceCardId,
       success: (res) => {
         console.log("转发成功", res);
       },

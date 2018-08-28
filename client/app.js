@@ -9,5 +9,6 @@ App({
   globalData: {
     tempPhotoPath: ''
   }
+  
 
 })
